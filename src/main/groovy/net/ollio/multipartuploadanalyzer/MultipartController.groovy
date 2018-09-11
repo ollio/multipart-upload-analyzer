@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile
 
 import javax.servlet.http.HttpServletRequest
 import javax.validation.Valid
+import java.security.MessageDigest
 
 @Log
 @RestController
@@ -23,12 +24,16 @@ class MultipartController {
                                                      @RequestParam(value="vorgangsNummer", required=false)  String vorgangsNummer,
                                         HttpServletRequest request) {
 
+    MessageDigest md = MessageDigest.getInstance("MD5")
+    def digest = Base64.encoder.encodeToString(md.digest(content.bytes))
+
     return ResponseEntity.ok(new Result(
       requestURI: request.getRequestURI(),
       headers: request.headerNames.iterator().collectEntries {
         [it, request.getHeader(it)]
       },
       contentSize: content.bytes.size(),
+      contentMd5: digest,
       contentType: content.contentType,
       contentFileName: content.getOriginalFilename(),
       contentName: content.name,
@@ -39,6 +44,7 @@ class MultipartController {
 
   class Result {
     long contentSize
+    String contentMd5
     String requestURI
     String contentType
     String contentFileName
